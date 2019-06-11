@@ -1,0 +1,33 @@
+{
+  "name": "photogen",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "author": "Flavian DESVERNE <desverne@prisma.io>",
+  "files": [
+    "dist",
+    "ncc_build"
+  ],
+  "bin": {
+    "photogen": "dist/index.js"
+  },
+  "scripts": {
+    "build": "rm -rf dist && rm -rf ncc_build && tsc && ncc build src/photogen/index.ts -o ncc_build",
+    "prettify": "prettier --write src/**/*.ts"
+  },
+  "dependencies": {
+    "graphql": "^0.12.0 || ^0.13.0 || ^14.0.0",
+    "nexus-tmp-chainable-method": "^0.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^12.0.8",
+    "@zeit/ncc": "^0.18.5",
+    "prettier": "^1.17.1",
+    "ts-node": "^8.2.0",
+    "typescript": "^3.5.1"
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true
+  }
+}
