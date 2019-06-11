@@ -1,4 +1,4 @@
-import { objectType } from "nexus-tmp-chainable-method";
+import { objectType } from 'nexus-tmp-chainable-method';
 
 export const Post = objectType({
   name: 'Post',

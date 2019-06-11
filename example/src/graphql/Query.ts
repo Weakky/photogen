@@ -1,4 +1,4 @@
-import { objectType } from "nexus-tmp-chainable-method";
+import { objectType } from 'nexus-tmp-chainable-method';
 
 export const Query = objectType({
   name: 'Query',
@@ -6,13 +6,13 @@ export const Query = objectType({
     t.photogen('Blog')
       .blog()
       .blogs();
-    
-    t.photogen("Author")
+
+    t.photogen('Author')
       .author()
-      .authors()
+      .authors();
 
     t.photogen('Post')
       .post()
-      .posts()
+      .posts();
   }
 });

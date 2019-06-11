@@ -4,3 +4,5 @@ node_modules
 example/db
 example/migrations
 example/generated
+yarn.lock
+package-lock.json
