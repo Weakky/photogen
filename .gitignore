@@ -1,5 +1,5 @@
 dist
-ncc_build
+photogen_ncc_build
 node_modules
 example/db
 example/migrations

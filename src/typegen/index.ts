@@ -18,7 +18,7 @@ export function generatePhotogenTypes(
 function render(dmmf: DMMF, photogenPath: string) {
   return `\
 import * as photon from '${photogenPath}';
-import { core } from 'nexus';
+import { core } from 'nexus-tmp-chainable-method';
 // Types helpers
 ${renderStaticTypes()}
 

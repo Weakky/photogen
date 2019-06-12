@@ -1,7 +1,7 @@
 import { DMMF as ExternalDMMF, ExternalDMMF as DMMF } from './dmmf/dmmf-types';
 import { transformDMMF } from './dmmf/dmmf-transformer';
 import * as fs from 'fs';
-import { join, relative } from 'path';
+import * as path from 'path';
 import { generatePhotogenTypes } from './typegen';
 import { GeneratorFunction, GeneratorDefinition } from '@prisma/cli';
 import { promisify } from 'util';
@@ -12,9 +12,8 @@ const copyFileAsync = promisify(fs.copyFile);
 function getPhotogenRuntime(photonOutput: string) {
   const dmmf = require(photonOutput).dmmf as ExternalDMMF.Document;
   const transformedDmmf = transformDMMF(dmmf);
-  const nccedLibrary = fs
-    .readFileSync(join(__dirname, '../ncc_build/index.js'))
-    .toString();
+  const nccPath = eval(`path.join(__dirname, '../photogen_ncc_build/index.js')`);
+  const nccedLibrary = fs.readFileSync(nccPath).toString();
   const nccedLibraryWithDMMF = nccedLibrary.replace(
     '__DMMF__',
     JSON.stringify(transformedDmmf)
@@ -30,7 +29,7 @@ function getImportPathRelativeToOutput(from: string, to: string): string {
     );
   }
 
-  let relativePath = relative(from, to);
+  let relativePath = path.relative(from, to);
 
   if (!relativePath.startsWith('.')) {
     relativePath = './' + relativePath;
@@ -63,7 +62,7 @@ const generate: GeneratorFunction = async ({
     );
   }
 
-  const output = generator.output || join(cwd, '/generated/photogen');
+  const output = generator.output || path.join(cwd, '/generated/photogen');
   const photonGeneratorOutput = photonGenerator.output || '@generated/photon';
   const { photogenRuntime, dmmf } = getPhotogenRuntime(photonGeneratorOutput);
 
@@ -77,17 +76,17 @@ const generate: GeneratorFunction = async ({
   }
 
   await Promise.all([
-    writeFileAsync(join(output, 'index.js'), photogenRuntime),
+    writeFileAsync(path.join(output, 'index.js'), photogenRuntime),
     writeFileAsync(
-      join(output, 'photogen.d.ts'),
+      path.join(output, 'photogen.d.ts'),
       generatePhotogenTypes(
         dmmf,
         getImportPathRelativeToOutput(output, photonGeneratorOutput)
       )
     ),
     copyFileAsync(
-      join(__dirname, 'photogen', 'index.d.ts'),
-      join(output, 'index.d.ts')
+      path.join(__dirname, 'photogen', 'index.d.ts'),
+      path.join(output, 'index.d.ts')
     )
   ]);
 
