@@ -66,3 +66,7 @@ Run the following command to run the GraphQL Server:
 ```
 npm start
 ```
+
+#### 6. Known limitations
+
+1. `update` doesn't work because of a query engine limitation
