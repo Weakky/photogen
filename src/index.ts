@@ -1,13 +1,15 @@
-#!/usr/bin/env node
 import { DMMF as ExternalDMMF, ExternalDMMF as DMMF } from './dmmf/dmmf-types';
 import { transformDMMF } from './dmmf/dmmf-transformer';
 import * as fs from 'fs';
 import { join } from 'path';
 import { generatePhotogenTypes } from './typegen';
+import { GeneratorFunction, GeneratorDefinition } from '@prisma/cli';
+import { promisify } from 'util';
 
-generatePhotogen(join(process.cwd(), process.argv[2]));
+const writeFileAsync = promisify(fs.writeFile);
+const copyFileAsync = promisify(fs.copyFile);
 
-export function generatePhotogen(outputDir: string) {
+function getPhotogenRuntime() {
   const dmmf = require('@generated/photon').dmmf as ExternalDMMF.Document;
   const transformedDmmf = transformDMMF(dmmf);
   const nccedLibrary = fs
@@ -18,22 +20,35 @@ export function generatePhotogen(outputDir: string) {
     JSON.stringify(transformedDmmf)
   );
 
-  if (!fs.existsSync(outputDir)) {
+  return { photogenRuntime: nccedLibraryWithDMMF, dmmf: transformedDmmf };
+}
+
+const generate: GeneratorFunction = async ({ generator, cwd }) => {
+  const output = join(cwd, generator.output || '/generated/photogen');
+  const { photogenRuntime, dmmf } = getPhotogenRuntime();
+
+  // Create the output directories if needed (mkdir -p)
+  if (!fs.existsSync(output)) {
     try {
-      // Create the output directories if needed (mkdir -p)
-      fs.mkdirSync(outputDir, { recursive: true });
+      fs.mkdirSync(output, { recursive: true });
     } catch (e) {
       if (e.code !== 'EEXIST') throw e;
     }
   }
 
-  fs.writeFileSync(join(outputDir, 'index.js'), nccedLibraryWithDMMF);
-  fs.writeFileSync(
-    join(outputDir, 'photogen.d.ts'),
-    generatePhotogenTypes(transformedDmmf)
-  );
-  fs.copyFileSync(
-    join(__dirname, 'photogen', 'index.d.ts'),
-    join(outputDir, 'index.d.ts')
-  );
-}
+  await Promise.all([
+    writeFileAsync(join(output, 'index.js'), photogenRuntime),
+    writeFileAsync(join(output, 'photogen.d.ts'), generatePhotogenTypes(dmmf)),
+    copyFileAsync(
+      join(__dirname, 'photogen', 'index.d.ts'),
+      join(output, 'index.d.ts')
+    )
+  ]);
+
+  return '';
+};
+
+export const generatorDefinition: GeneratorDefinition = {
+  generate,
+  prettyName: 'Photogen'
+};

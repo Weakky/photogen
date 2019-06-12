@@ -2,6 +2,13 @@
 # yarn lockfile v1
 
 
+"@prisma/cli@^0.0.10":
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/@prisma/cli/-/cli-0.0.10.tgz#def3a2be3d9b2b2abcbc778dac829495709415f9"
+  integrity sha512-0qP/+2TwbhwNyYQsPHuIrci9C+zbxMEuNAhrBo8UzurtGKsAskKfhmdBr1aUx0/WiXEcIi0JTC7aaUzLRZItBA==
+  dependencies:
+    arg "^4.1.0"
+
 "@types/node@^12.0.8":
   version "12.0.8"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.0.8.tgz#551466be11b2adc3f3d47156758f610bd9f6b1d8"
