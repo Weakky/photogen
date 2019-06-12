@@ -1,7 +1,7 @@
 import { DMMF as ExternalDMMF, ExternalDMMF as DMMF } from './dmmf/dmmf-types';
 import { transformDMMF } from './dmmf/dmmf-transformer';
 import * as fs from 'fs';
-import { join } from 'path';
+import { join, relative } from 'path';
 import { generatePhotogenTypes } from './typegen';
 import { GeneratorFunction, GeneratorDefinition } from '@prisma/cli';
 import { promisify } from 'util';
@@ -23,6 +23,31 @@ function getPhotogenRuntime(photonOutput: string) {
   return { photogenRuntime: nccedLibraryWithDMMF, dmmf: transformedDmmf };
 }
 
+function getImportPathRelativeToOutput(from: string, to: string): string {
+  if (to.includes('node_modules')) {
+    return to.substring(
+      to.lastIndexOf('node_modules') + 'node_modules'.length + 1
+    );
+  }
+
+  let relativePath = relative(from, to);
+
+  if (!relativePath.startsWith('.')) {
+    relativePath = './' + relativePath;
+  }
+
+  // remove .ts or .js file extension
+  relativePath = relativePath.replace(/\.(ts|js)$/, '');
+
+  // remove /index
+  relativePath = relativePath.replace(/\/index$/, '');
+
+  // replace \ with /
+  relativePath = relativePath.replace(/\\/g, '/');
+
+  return relativePath;
+}
+
 const generate: GeneratorFunction = async ({
   generator,
   cwd,
@@ -39,9 +64,8 @@ const generate: GeneratorFunction = async ({
   }
 
   const output = generator.output || join(cwd, '/generated/photogen');
-  const { photogenRuntime, dmmf } = getPhotogenRuntime(
-    photonGenerator.output || '@generated/photon'
-  );
+  const photonGeneratorOutput = photonGenerator.output || '@generated/photon';
+  const { photogenRuntime, dmmf } = getPhotogenRuntime(photonGeneratorOutput);
 
   // Create the output directories if needed (mkdir -p)
   if (!fs.existsSync(output)) {
@@ -54,7 +78,13 @@ const generate: GeneratorFunction = async ({
 
   await Promise.all([
     writeFileAsync(join(output, 'index.js'), photogenRuntime),
-    writeFileAsync(join(output, 'photogen.d.ts'), generatePhotogenTypes(dmmf)),
+    writeFileAsync(
+      join(output, 'photogen.d.ts'),
+      generatePhotogenTypes(
+        dmmf,
+        getImportPathRelativeToOutput(output, photonGeneratorOutput)
+      )
+    ),
     copyFileAsync(
       join(__dirname, 'photogen', 'index.d.ts'),
       join(output, 'index.d.ts')

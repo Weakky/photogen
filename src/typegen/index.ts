@@ -8,12 +8,17 @@ import {
 
 type DMMF = DMMF.Document;
 
-export function generatePhotogenTypes(dmmf: DMMF): string {
-  return render(dmmf);
+export function generatePhotogenTypes(
+  dmmf: DMMF,
+  photogenPath: string
+): string {
+  return render(dmmf, photogenPath);
 }
 
-function render(dmmf: DMMF) {
+function render(dmmf: DMMF, photogenPath: string) {
   return `\
+import * as photon from '${photogenPath}';
+import { core } from 'nexus';
 // Types helpers
 ${renderStaticTypes()}
 
@@ -254,9 +259,6 @@ ${dmmf.datamodel.models.map(
 
 function renderStaticTypes() {
   return `\
-  import * as photon from '@generated/photon/index';
-  import { core } from 'nexus';
-  
   type ModelNameExistsInGraphQLType<
     ReturnType extends any
   > = ReturnType extends core.GetGen<'objectNames'> ? true : false;
