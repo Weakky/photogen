@@ -8,7 +8,7 @@ Clone this repository:
 
 ```
 git clone https://github.com/Weakky/photogen.git
-cd example
+cd photogen/example
 ```
 
 #### 2. Install the Prisma 2 CLI
