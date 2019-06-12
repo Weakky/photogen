@@ -1,5 +1,7 @@
 # Photogen
 
+Auto-generated CRUD & model resolvers for Nexus using Prisma Photon
+
 ## Getting started
 
 #### 1. Clone the repo
