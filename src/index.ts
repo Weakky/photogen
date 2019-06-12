@@ -9,8 +9,8 @@ import { promisify } from 'util';
 const writeFileAsync = promisify(fs.writeFile);
 const copyFileAsync = promisify(fs.copyFile);
 
-function getPhotogenRuntime() {
-  const dmmf = require('@generated/photon').dmmf as ExternalDMMF.Document;
+function getPhotogenRuntime(photonOutput: string) {
+  const dmmf = require(photonOutput).dmmf as ExternalDMMF.Document;
   const transformedDmmf = transformDMMF(dmmf);
   const nccedLibrary = fs
     .readFileSync(join(__dirname, '../ncc_build/index.js'))
@@ -23,9 +23,25 @@ function getPhotogenRuntime() {
   return { photogenRuntime: nccedLibraryWithDMMF, dmmf: transformedDmmf };
 }
 
-const generate: GeneratorFunction = async ({ generator, cwd }) => {
-  const output = join(cwd, generator.output || '/generated/photogen');
-  const { photogenRuntime, dmmf } = getPhotogenRuntime();
+const generate: GeneratorFunction = async ({
+  generator,
+  cwd,
+  otherGenerators
+}) => {
+  const photonGenerator = otherGenerators.find(generator =>
+    ['javascript', 'typescript', 'photon'].includes(generator.name)
+  );
+
+  if (!photonGenerator) {
+    throw new Error(
+      'Photogen needs a photon generator to be defined in the datamodel'
+    );
+  }
+
+  const output = generator.output || join(cwd, '/generated/photogen');
+  const { photogenRuntime, dmmf } = getPhotogenRuntime(
+    photonGenerator.output || '@generated/photon'
+  );
 
   // Create the output directories if needed (mkdir -p)
   if (!fs.existsSync(output)) {
