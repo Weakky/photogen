@@ -1,4 +1,4 @@
-# Photogen
+# nexus-prisma
 
 Auto-generated CRUD & model resolvers for GraphQL Nexus using Prisma Photon
 
