@@ -7,12 +7,12 @@ import {
 import { transformDMMF } from '../dmmf/dmmf-transformer';
 import { ExternalDMMF as DMMF } from '../dmmf/dmmf-types';
 import { DMMFClass } from '../dmmf/DMMFClass';
-import { PhotogenParams } from '.';
+import { NexusPrismaParams } from '.';
 import { defaultNamingStrategy, INamingStrategy } from './StrategyNaming';
 import { getSupportedMutations, getSupportedQueries } from './supported-ops';
 import { assertPhotonInContext, nexusOpts } from '../utils';
 
-interface PhotogenMethodParams {
+interface NexusPrismaMethodParams {
   alias?: string;
   type?: string;
   pagination?: boolean | Record<string, boolean>;
@@ -31,7 +31,7 @@ export class NexusPrismaBuilder {
   protected whitelistMap: Record<string, string[]>;
   protected namingStrategy: INamingStrategy;
 
-  constructor(protected params: PhotogenParams) {
+  constructor(protected params: NexusPrismaParams) {
     let transformedDMMF;
 
     if (process.env.NEXUS_PRISMA_DEBUG) {
@@ -50,7 +50,7 @@ export class NexusPrismaBuilder {
     }
   }
 
-  getPhotogenMethod() {
+  getNexusPrismaMethod() {
     return [
       this.getCRUDDynamicOutputMethod(),
       this.getModelDynamicOutputMethod()
@@ -181,7 +181,7 @@ export class NexusPrismaBuilder {
     graphQLTypeName: string,
     operationName: keyof DMMF.Mapping | null,
     field: DMMF.SchemaField,
-    opts: PhotogenMethodParams
+    opts: NexusPrismaMethodParams
   ) {
     let args: DMMF.SchemaArg[] = [];
 
@@ -205,7 +205,7 @@ export class NexusPrismaBuilder {
     prismaModelName: string,
     graphQLTypeName: string,
     field: DMMF.SchemaField,
-    opts: PhotogenMethodParams
+    opts: NexusPrismaMethodParams
   ) {
     let args: DMMF.SchemaArg[] = [];
 
@@ -318,7 +318,7 @@ export class NexusPrismaBuilder {
     mappedFields: FieldsWithModelName[]
   ) {
     const result = mappedFields.reduce<
-      Record<string, (opts?: PhotogenMethodParams) => any>
+      Record<string, (opts?: NexusPrismaMethodParams) => any>
     >((acc, mappedField) => {
       const prismaModelName = mappedField.mapping.model;
 
@@ -449,7 +449,7 @@ export class NexusPrismaBuilder {
     const outputType = this.dmmf.getOutputType(model.name);
 
     const result = model.fields.reduce<
-      Record<string, (opts?: PhotogenMethodParams) => any>
+      Record<string, (opts?: NexusPrismaMethodParams) => any>
     >((acc, modelField) => {
       const graphqlField = outputType.fields.find(
         f => f.name === modelField.name

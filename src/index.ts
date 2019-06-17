@@ -2,7 +2,7 @@ import { DMMF as ExternalDMMF, ExternalDMMF as DMMF } from './dmmf/dmmf-types';
 import { transformDMMF } from './dmmf/dmmf-transformer';
 import * as fs from 'fs';
 import * as path from 'path';
-import { generatePhotogenTypes } from './typegen';
+import { generateNexusPrismaTypes } from './typegen';
 import { GeneratorFunction, GeneratorDefinition } from '@prisma/cli';
 import { promisify } from 'util';
 
@@ -13,7 +13,7 @@ function getNexusPrismaRuntime(photonOutput: string) {
   const dmmf = require(photonOutput).dmmf as ExternalDMMF.Document;
   const transformedDmmf = transformDMMF(dmmf);
   const nccPath = eval(
-    `path.join(__dirname, '../photogen_ncc_build/index.js')`
+    `path.join(__dirname, '../nexus_prisma_ncc_build/index.js')`
   );
   const nccedLibrary = fs.readFileSync(nccPath).toString();
   const nccedLibraryWithDMMF = nccedLibrary.replace(
@@ -21,7 +21,7 @@ function getNexusPrismaRuntime(photonOutput: string) {
     JSON.stringify(transformedDmmf)
   );
 
-  return { photogenRuntime: nccedLibraryWithDMMF, dmmf: transformedDmmf };
+  return { nexusPrismaRuntime: nccedLibraryWithDMMF, dmmf: transformedDmmf };
 }
 
 function getImportPathRelativeToOutput(from: string, to: string): string {
@@ -55,18 +55,18 @@ const generate: GeneratorFunction = async ({
   otherGenerators
 }) => {
   const photonGenerator = otherGenerators.find(generator =>
-    ['javascript', 'typescript', 'photon', 'photonjs'].includes(generator.name)
+    ['photon', 'photonjs'].includes(generator.name)
   );
 
   if (!photonGenerator) {
     throw new Error(
-      'Photogen needs a photon generator to be defined in the datamodel'
+      'Nexus prisma needs a photon generator to be defined in the datamodel'
     );
   }
 
   const output = generator.output || path.join(cwd, '/generated/nexus-prisma');
   const photonGeneratorOutput = photonGenerator.output || '@generated/photon';
-  const { photogenRuntime, dmmf } = getNexusPrismaRuntime(
+  const { nexusPrismaRuntime, dmmf } = getNexusPrismaRuntime(
     photonGeneratorOutput
   );
 
@@ -80,16 +80,16 @@ const generate: GeneratorFunction = async ({
   }
 
   await Promise.all([
-    writeFileAsync(path.join(output, 'index.js'), photogenRuntime),
+    writeFileAsync(path.join(output, 'index.js'), nexusPrismaRuntime),
     writeFileAsync(
       path.join(output, 'nexus-prisma.d.ts'),
-      generatePhotogenTypes(
+      generateNexusPrismaTypes(
         dmmf,
         getImportPathRelativeToOutput(output, photonGeneratorOutput)
       )
     ),
     copyFileAsync(
-      path.join(__dirname, 'photogen', 'index.d.ts'),
+      path.join(__dirname, 'nexus-prisma', 'index.d.ts'),
       path.join(output, 'index.d.ts')
     )
   ]);

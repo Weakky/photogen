@@ -2,16 +2,16 @@ import { ExternalDMMF as DMMF } from '../dmmf/dmmf-types';
 
 type DMMF = DMMF.Document;
 
-export function generatePhotogenTypes(
+export function generateNexusPrismaTypes(
   dmmf: DMMF,
-  photogenPath: string
+  photonPath: string
 ): string {
-  return render(dmmf, photogenPath);
+  return render(dmmf, photonPath);
 }
 
-function render(dmmf: DMMF, photogenPath: string) {
+function render(dmmf: DMMF, photonPath: string) {
   return `\
-import * as photon from '${photogenPath}';
+import * as photon from '${photonPath}';
 import { core } from 'nexus-tmp-chainable-method';
 // Types helpers
 ${renderStaticTypes()}
@@ -66,7 +66,7 @@ function renderNexusPrismaTypes(dmmf: DMMF) {
   }, {});
 
   // TODO: Add JS Docs
-  const renderPhotogenType = (
+  const renderNexusPrismaType = (
     input: {
       fieldName: string;
       returnType: string;
@@ -78,14 +78,14 @@ ${input.map(f => `    ${f.fieldName}: '${f.returnType}'`).join('\n')}
   return `\
 interface NexusPrismaTypes {
   Query: {
-${renderPhotogenType(queriesByType)}
+${renderNexusPrismaType(queriesByType)}
   },
   Mutation: {
-${renderPhotogenType(mutationsByType)}
+${renderNexusPrismaType(mutationsByType)}
   },
 ${Object.entries(fieldsByType).map(
   ([modelName, fields]) => `  ${modelName}: {
-${renderPhotogenType(fields)}
+${renderNexusPrismaType(fields)}
 }`
 )}
 }
@@ -154,7 +154,7 @@ function renderNexusPrismaInputs(dmmf: DMMF) {
     }, {});
 
   // TODO: Add JS Docs
-  const renderPhotogenInput = (
+  const renderNexusPrismaInput = (
     input: {
       fieldName: string;
       filtering: DMMF.InputType;
@@ -174,11 +174,11 @@ ${input
   return `\
 interface NexusPrismaInputs {
   Query: {
-${renderPhotogenInput(queriesFields)}
+${renderNexusPrismaInput(queriesFields)}
   },
   ${Object.entries(fieldsByType).map(
     ([modelName, fields]) => `  ${modelName}: {
-${renderPhotogenInput(fields)}
+${renderNexusPrismaInput(fields)}
   }`
   )}
 }
@@ -245,7 +245,7 @@ type GetSubsetTypes<ModelName extends any> = keyof OmitByValue<
 type SubsetTypes<ModelName extends any> = GetSubsetTypes<
   ModelName
 > extends never
-  ? \`ERROR: No subset types are available. Please make sure that one of your GraphQL type is a subset of your t.photogen('<ModelName>')\`
+  ? \`ERROR: No subset types are available. Please make sure that one of your GraphQL type is a subset of your t.model('<ModelName>')\`
   : GetSubsetTypes<ModelName>;
 
 type DynamicRequiredType<ReturnType extends any> = ModelNameExistsInGraphQLType<

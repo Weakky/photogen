@@ -2,7 +2,7 @@ import Photon from '@generated/photon';
 import { GraphQLServer } from 'graphql-yoga';
 import { makeSchema } from 'nexus-tmp-chainable-method';
 import { join } from 'path';
-import { photogenMethod } from '../generated/nexus-prisma';
+import { nexusPrismaMethod } from '../generated/nexus-prisma';
 import * as allTypes from './graphql';
 
 main();
@@ -12,12 +12,12 @@ async function main() {
 
   await photon.connect();
 
-  const photogen = photogenMethod({
+  const nexusPrisma = nexusPrismaMethod({
     photon: ctx => ctx.photon
   });
 
   const schema = makeSchema({
-    types: [allTypes, photogen],
+    types: [allTypes, nexusPrisma],
     outputs: {
       typegen: join(__dirname, '../generated/nexus-typegen.ts'),
       schema: join(__dirname, '/schema.graphql')

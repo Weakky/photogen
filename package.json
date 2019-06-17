@@ -7,13 +7,13 @@
   "author": "Flavian DESVERNE <desverne@prisma.io>",
   "files": [
     "dist",
-    "photogen_ncc_build"
+    "nexus_prisma_ncc_build"
   ],
   "bin": {
     "photogen": "dist/index.js"
   },
   "scripts": {
-    "build": "rm -rf dist && rm -rf photogen_ncc_build && tsc && ncc build -e nexus-tmp-chainable-method src/photogen/index.ts -o photogen_ncc_build",
+    "build": "rm -rf dist && rm -rf nexus_prisma_ncc_build && tsc && ncc build -e nexus-tmp-chainable-method src/nexus-prisma/index.ts -o nexus_prisma_ncc_build",
     "prepublish": "yarn build",
     "prettify": "prettier --write src/**/*.ts"
   },
