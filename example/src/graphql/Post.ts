@@ -1,4 +1,4 @@
-import { objectType } from 'nexus-tmp-chainable-method';
+import { objectType } from '@prisma/nexus';
 
 export const Post = objectType({
   name: 'CustomPost',

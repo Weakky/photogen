@@ -1,10 +1,11 @@
-import { DMMF as ExternalDMMF, ExternalDMMF as DMMF } from './dmmf/dmmf-types';
-import { transformDMMF } from './dmmf/dmmf-transformer';
+import { GeneratorDefinition, GeneratorFunction } from '@prisma/cli';
 import * as fs from 'fs';
 import * as path from 'path';
-import { generateNexusPrismaTypes } from './typegen';
-import { GeneratorFunction, GeneratorDefinition } from '@prisma/cli';
 import { promisify } from 'util';
+import { transformDMMF } from './dmmf/dmmf-transformer';
+import { DMMF as ExternalDMMF } from './dmmf/dmmf-types';
+import { generateNexusPrismaTypes } from './typegen';
+import { getImportPathRelativeToOutput } from './utils';
 
 const writeFileAsync = promisify(fs.writeFile);
 const copyFileAsync = promisify(fs.copyFile);
@@ -24,31 +25,6 @@ function getNexusPrismaRuntime(photonOutput: string) {
   return { nexusPrismaRuntime: nccedLibraryWithDMMF, dmmf: transformedDmmf };
 }
 
-function getImportPathRelativeToOutput(from: string, to: string): string {
-  if (to.includes('node_modules')) {
-    return to.substring(
-      to.lastIndexOf('node_modules') + 'node_modules'.length + 1
-    );
-  }
-
-  let relativePath = path.relative(from, to);
-
-  if (!relativePath.startsWith('.')) {
-    relativePath = './' + relativePath;
-  }
-
-  // remove .ts or .js file extension
-  relativePath = relativePath.replace(/\.(ts|js)$/, '');
-
-  // remove /index
-  relativePath = relativePath.replace(/\/index$/, '');
-
-  // replace \ with /
-  relativePath = relativePath.replace(/\\/g, '/');
-
-  return relativePath;
-}
-
 const generate: GeneratorFunction = async ({
   generator,
   cwd,
@@ -64,8 +40,9 @@ const generate: GeneratorFunction = async ({
     );
   }
 
-  const output = generator.output || path.join(cwd, '/generated/nexus-prisma');
-  const photonGeneratorOutput = photonGenerator.output || '@generated/photon';
+  const output =
+    generator.output || path.join(cwd, '/node_modules/@generated/nexus-prisma');
+  const photonGeneratorOutput = photonGenerator.output!;
   const { nexusPrismaRuntime, dmmf } = getNexusPrismaRuntime(
     photonGeneratorOutput
   );
@@ -79,20 +56,29 @@ const generate: GeneratorFunction = async ({
     }
   }
 
+  const runtimePath = path.join(output, 'index.js');
+  const globalTypingsPath = path.join(output, 'index.d.ts');
+
+  const typingsPathSource = path.join(__dirname, 'nexus-prisma', 'index.d.ts');
+  //const typingsPathTarget = path.join(output, 'index.d.ts');
+
+  try {
+    fs.unlinkSync(globalTypingsPath);
+  } catch {}
+
   await Promise.all([
-    writeFileAsync(path.join(output, 'index.js'), nexusPrismaRuntime),
+    writeFileAsync(runtimePath, nexusPrismaRuntime),
     writeFileAsync(
-      path.join(output, 'nexus-prisma.d.ts'),
+      globalTypingsPath,
       generateNexusPrismaTypes(
         dmmf,
         getImportPathRelativeToOutput(output, photonGeneratorOutput)
       )
-    ),
-    copyFileAsync(
-      path.join(__dirname, 'nexus-prisma', 'index.d.ts'),
-      path.join(output, 'index.d.ts')
     )
   ]);
+
+  const typingsPathContent = fs.readFileSync(typingsPathSource).toString();
+  fs.appendFileSync(globalTypingsPath, typingsPathContent);
 
   return '';
 };
@@ -106,7 +92,10 @@ if (process.env.NEXUS_PRISMA_DEBUG) {
   generatorDefinition.generate({
     cwd: process.cwd(),
     generator: {
-      output: path.join(__dirname, '../example/generated/nexus-prisma'),
+      output: path.join(
+        __dirname,
+        '../example/node_modules/@generated/nexus-prisma'
+      ),
       config: {},
       name: 'Nexus Prisma'
     },

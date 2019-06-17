@@ -1,8 +1,8 @@
-import { objectType } from "nexus-tmp-chainable-method/dist";
+import { objectType } from '@prisma/nexus';
 
 export const Mutation = objectType({
   name: 'Mutation',
   definition(t) {
-    t.crud.createOneBlog()
+    t.crud.createOneBlog();
   }
-})
+});

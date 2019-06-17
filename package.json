@@ -13,12 +13,13 @@
     "photogen": "dist/index.js"
   },
   "scripts": {
-    "build": "rm -rf dist && rm -rf nexus_prisma_ncc_build && tsc && ncc build -e nexus-tmp-chainable-method src/nexus-prisma/index.ts -o nexus_prisma_ncc_build",
+    "build": "rm -rf dist && rm -rf nexus_prisma_ncc_build && tsc && ncc build -e @prisma/nexus src/nexus-prisma/index.ts -o nexus_prisma_ncc_build",
     "prepublish": "yarn build",
     "prettify": "prettier --write src/**/*.ts"
   },
   "dependencies": {
-    "nexus-tmp-chainable-method": "0.0.4"
+    "@prisma/nexus": "^0.0.1",
+    "pkg-up": "^3.1.0"
   },
   "devDependencies": {
     "@prisma/cli": "^0.0.13",

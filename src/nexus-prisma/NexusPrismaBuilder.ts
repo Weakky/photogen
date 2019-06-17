@@ -3,7 +3,7 @@ import {
   dynamicOutputMethod,
   enumType,
   inputObjectType
-} from 'nexus-tmp-chainable-method';
+} from '@prisma/nexus';
 import { transformDMMF } from '../dmmf/dmmf-transformer';
 import { ExternalDMMF as DMMF } from '../dmmf/dmmf-types';
 import { DMMFClass } from '../dmmf/DMMFClass';
@@ -35,7 +35,8 @@ export class NexusPrismaBuilder {
     let transformedDMMF;
 
     if (process.env.NEXUS_PRISMA_DEBUG) {
-      transformedDMMF = transformDMMF(require('@generated/photon').dmmf);
+      // Using eval so that ncc doesn't include it in the build
+      transformedDMMF = transformDMMF(eval(`require('@generated/photon'`).dmmf);
     } else {
       // @ts-ignore
       transformedDMMF = __DMMF__;

@@ -12,7 +12,7 @@ export function generateNexusPrismaTypes(
 function render(dmmf: DMMF, photonPath: string) {
   return `\
 import * as photon from '${photonPath}';
-import { core } from 'nexus-tmp-chainable-method';
+import { core } from '@prisma/nexus';
 // Types helpers
 ${renderStaticTypes()}
 

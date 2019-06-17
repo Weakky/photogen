@@ -2,6 +2,13 @@
 # yarn lockfile v1
 
 
+"@prisma/nexus@^0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@prisma/nexus/-/nexus-0.0.1.tgz#1b75b268f29714a8958e80d88d7141004a343650"
+  integrity sha512-eRAbVUOLPr0copaj7u7Q9w2hlPNHp77XuOMC+O7dmYiM/204Gl7Whp1SCmGq98hjb3NaJbNMJpq3lfJL4GTgqg==
+  dependencies:
+    tslib "^1.9.3"
+
 "@types/body-parser@*":
   version "1.17.0"
   resolved "https://registry.yarnpkg.com/@types/body-parser/-/body-parser-1.17.0.tgz#9f5c9d9bd04bb54be32d5eb9fc0d8c974e6cf58c"
@@ -908,20 +915,6 @@ negotiator@0.6.2:
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.2.tgz#feacf7ccf525a77ae9634436a64883ffeca346fb"
   integrity sha512-hZXc7K2e+PgeI1eDBe/10Ard4ekbfrrqG8Ep+8Jmf4JID2bNg7NvCPOZN+kfF574pFQI7mum2AUqDidoKqcTOw==
 
-nexus-tmp-chainable-method@0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/nexus-tmp-chainable-method/-/nexus-tmp-chainable-method-0.0.4.tgz#7029d67a4dd49d522c832ec8ad9fb1c5b7d0eb91"
-  integrity sha512-oZt25f8nhtKlav0i3o+Cyev9XqY3ILB1Fs88hyUQAuLtS1QxEhmS101P/jZMQGpM1bRHpU3Eg+n5x0OJP8oILQ==
-  dependencies:
-    tslib "^1.9.3"
-
-nexus-tmp-chainable-method@^0.0.2:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/nexus-tmp-chainable-method/-/nexus-tmp-chainable-method-0.0.2.tgz#a05d80da590b16f03eeb49e16e0a8133a5251a68"
-  integrity sha512-xMgEkyf9bBea3mBVjJYnBoIIXEtMyQ8cJFxwzUSniAfa/+gzK7nKxA0PEnM/aKdbbTwUvEGGohM2a4BFGhw/Rg==
-  dependencies:
-    tslib "^1.9.3"
-
 nexus@^0.12.0-beta.6:
   version "0.12.0-beta.6"
   resolved "https://registry.yarnpkg.com/nexus/-/nexus-0.12.0-beta.6.tgz#24829f4014365446972fdc066517893f36dd394e"
@@ -1021,13 +1014,6 @@ path-type@^1.0.0:
     graceful-fs "^4.1.2"
     pify "^2.0.0"
     pinkie-promise "^2.0.0"
-
-photogen@^0.0.10:
-  version "0.0.10"
-  resolved "https://registry.yarnpkg.com/photogen/-/photogen-0.0.10.tgz#4a3647c5d50630b84eaea90190b2a78d41db93ab"
-  integrity sha512-Vag7NbQk0qSaWPcQn2gwlBwDAh5e6onhJQUl6o5EQemQ6/UyvkRifEEbDWFzyZ4ddHgSzvbIWkYeIAj2jNmMNQ==
-  dependencies:
-    nexus-tmp-chainable-method "^0.0.2"
 
 pify@^2.0.0:
   version "2.3.0"
