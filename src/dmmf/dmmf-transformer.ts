@@ -8,6 +8,13 @@ export function transformDMMF(document: DMMF.Document): ExternalDMMF.Document {
   };
 }
 
+function transformMappings(mappings: DMMF.Mapping[]) {
+  return mappings.map(mapping => ({
+    ...mapping,
+    findOne: mapping.model.toLowerCase()
+  }));
+}
+
 function transformDatamodel(datamodel: DMMF.Datamodel): ExternalDMMF.Datamodel {
   return {
     enums: datamodel.enums,

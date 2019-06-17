@@ -9,10 +9,12 @@ import { promisify } from 'util';
 const writeFileAsync = promisify(fs.writeFile);
 const copyFileAsync = promisify(fs.copyFile);
 
-function getPhotogenRuntime(photonOutput: string) {
+function getNexusPrismaRuntime(photonOutput: string) {
   const dmmf = require(photonOutput).dmmf as ExternalDMMF.Document;
   const transformedDmmf = transformDMMF(dmmf);
-  const nccPath = eval(`path.join(__dirname, '../photogen_ncc_build/index.js')`);
+  const nccPath = eval(
+    `path.join(__dirname, '../photogen_ncc_build/index.js')`
+  );
   const nccedLibrary = fs.readFileSync(nccPath).toString();
   const nccedLibraryWithDMMF = nccedLibrary.replace(
     '__DMMF__',
@@ -53,7 +55,7 @@ const generate: GeneratorFunction = async ({
   otherGenerators
 }) => {
   const photonGenerator = otherGenerators.find(generator =>
-    ['javascript', 'typescript', 'photon'].includes(generator.name)
+    ['javascript', 'typescript', 'photon', 'photonjs'].includes(generator.name)
   );
 
   if (!photonGenerator) {
@@ -62,9 +64,11 @@ const generate: GeneratorFunction = async ({
     );
   }
 
-  const output = generator.output || path.join(cwd, '/generated/photogen');
+  const output = generator.output || path.join(cwd, '/generated/nexus-prisma');
   const photonGeneratorOutput = photonGenerator.output || '@generated/photon';
-  const { photogenRuntime, dmmf } = getPhotogenRuntime(photonGeneratorOutput);
+  const { photogenRuntime, dmmf } = getNexusPrismaRuntime(
+    photonGeneratorOutput
+  );
 
   // Create the output directories if needed (mkdir -p)
   if (!fs.existsSync(output)) {
@@ -78,7 +82,7 @@ const generate: GeneratorFunction = async ({
   await Promise.all([
     writeFileAsync(path.join(output, 'index.js'), photogenRuntime),
     writeFileAsync(
-      path.join(output, 'photogen.d.ts'),
+      path.join(output, 'nexus-prisma.d.ts'),
       generatePhotogenTypes(
         dmmf,
         getImportPathRelativeToOutput(output, photonGeneratorOutput)
@@ -95,5 +99,26 @@ const generate: GeneratorFunction = async ({
 
 export const generatorDefinition: GeneratorDefinition = {
   generate,
-  prettyName: 'Photogen'
+  prettyName: 'Nexus Prisma'
 };
+
+if (process.env.NEXUS_PRISMA_DEBUG) {
+  generatorDefinition.generate({
+    cwd: process.cwd(),
+    generator: {
+      output: path.join(__dirname, '../example/generated/nexus-prisma'),
+      config: {},
+      name: 'Nexus Prisma'
+    },
+    otherGenerators: [
+      {
+        name: 'photon',
+        config: {},
+        output: path.join(
+          __dirname,
+          '../example/node_modules/@generated/photon'
+        )
+      }
+    ]
+  });
+}

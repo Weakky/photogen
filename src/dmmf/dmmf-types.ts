@@ -83,6 +83,7 @@ export declare namespace ExternalDMMF {
   }
   interface Mapping {
     model: string;
+    plural?: string;
     findOne?: string;
     findMany?: string;
     create?: string;

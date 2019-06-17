@@ -7,7 +7,7 @@ import {
 import { transformDMMF } from '../dmmf/dmmf-transformer';
 import { ExternalDMMF as DMMF } from '../dmmf/dmmf-types';
 import { DMMFClass } from '../dmmf/DMMFClass';
-import { PhotogenParams } from '../photogen';
+import { PhotogenParams } from '.';
 import { defaultNamingStrategy, INamingStrategy } from './StrategyNaming';
 import { getSupportedMutations, getSupportedQueries } from './supported-ops';
 import { assertPhotonInContext, nexusOpts } from '../utils';
@@ -20,85 +20,174 @@ interface PhotogenMethodParams {
   ordering?: boolean | Record<string, boolean>;
 }
 
-export class PhotogenBuilder {
+type FieldsWithModelName = {
+  fields: DMMF.SchemaField[];
+  mapping: DMMF.Mapping;
+};
+
+export class NexusPrismaBuilder {
   protected readonly dmmf: DMMFClass;
   protected builtInputTypesMap: Record<string, boolean>;
   protected whitelistMap: Record<string, string[]>;
   protected namingStrategy: INamingStrategy;
 
   constructor(protected params: PhotogenParams) {
-    // @ts-ignore
-    const transformedDMMF = __DMMF__;
+    let transformedDMMF;
 
-    this.dmmf = new DMMFClass(transformedDMMF);
+    if (process.env.NEXUS_PRISMA_DEBUG) {
+      transformedDMMF = transformDMMF(require('@generated/photon').dmmf);
+    } else {
+      // @ts-ignore
+      transformedDMMF = __DMMF__;
+    }
+
+    this.dmmf = new DMMFClass(transformedDMMF as any);
     this.namingStrategy = defaultNamingStrategy;
     this.builtInputTypesMap = {};
     this.whitelistMap = {};
-  }
-
-  getPhotogenMethod() {
-    if (!this.params.methodName) {
-      this.params.methodName = 'photogen';
-    }
     if (!this.params.photon) {
       this.params.photon = ctx => ctx.photon;
     }
+  }
+
+  getPhotogenMethod() {
+    return [
+      this.getCRUDDynamicOutputMethod(),
+      this.getModelDynamicOutputMethod()
+      //this.getModelsDynamicOutputMethod()
+    ];
+  }
+
+  protected getCRUDDynamicOutputMethod() {
+    //const methodName = this.params.methodName ? this.params.methodName : 'crud';
 
     return dynamicOutputMethod({
-      name: this.params.methodName,
-      typeDefinition: `: Photogen<TypeName>`,
-      factory: ({ typeDef: t, typeName: graphQLTypeName, args }) => {
-        const [prismaModelName] = args as [string];
-        const mapping = this.dmmf.getMapping(prismaModelName);
+      name: 'crud',
+      typeDefinition: `: NexusPrisma<TypeName, 'crud'>`,
+      factory: ({ typeDef: t, typeName: graphQLTypeName }) => {
+        const buildCrud = () => {
+          if (graphQLTypeName !== 'Query' && graphQLTypeName !== 'Mutation') {
+            throw new Error(
+              `t.crud can only be used on a 'Query' & 'Mutation' objectType. Please use 't.model' instead`
+            );
+          }
 
-        if (graphQLTypeName === 'Query') {
-          const queriesNames = getSupportedQueries(mapping);
-          const queryFields = this.dmmf.queryType.fields.filter(query =>
-            queriesNames.includes(query.name)
-          );
+          if (graphQLTypeName === 'Query') {
+            const queryFields = this.dmmf.mappings.map(mapping => {
+              const queriesNames = getSupportedQueries(mapping);
+              return {
+                fields: this.dmmf.queryType.fields.filter(query =>
+                  queriesNames.includes(query.name)
+                ),
+                mapping
+              };
+            });
 
-          return this.buildSchemaFor(
-            t,
-            prismaModelName,
-            'Query',
-            queryFields,
-            mapping
-          );
-        }
+            return this.buildSchemaForCRUD(t, 'Query', queryFields);
+          }
 
-        if (graphQLTypeName === 'Mutation') {
-          const mutationsNames = getSupportedMutations(mapping);
-          const mutationFields = this.dmmf.mutationType.fields.filter(
-            mutation => mutationsNames.includes(mutation.name)
-          );
+          if (graphQLTypeName === 'Mutation') {
+            const mutationFields = this.dmmf.mappings.map(mapping => {
+              const mutationsNames = getSupportedMutations(mapping);
+              return {
+                fields: this.dmmf.mutationType.fields.filter(mutation =>
+                  mutationsNames.includes(mutation.name)
+                ),
+                mapping
+              };
+            });
 
-          return this.buildSchemaFor(
-            t,
-            prismaModelName,
-            'Mutation',
-            mutationFields,
-            mapping
-          );
-        }
+            return this.buildSchemaForCRUD(t, 'Mutation', mutationFields);
+          }
+        };
 
-        return this.buildSchemaForPrismaModel(
-          prismaModelName,
-          graphQLTypeName,
-          t
-        );
+        // if (this.params.methodName) {
+        //   return {
+        //     [this.params.methodName]: buildCrud()
+        //   };
+        // }
+
+        return buildCrud();
       }
     });
+  }
+
+  protected getModelDynamicOutputMethod() {
+    // const methodName = this.params.methodName
+    //   ? this.params.methodName
+    //   : 'model';
+    return dynamicOutputMethod({
+      name: 'model',
+      typeDefinition: `: NexusPrisma<TypeName, 'model'>`,
+      factory: ({ typeDef: t, typeName: graphQLTypeName }) => {
+        const modelDefinition = this.dmmf.hasModel(graphQLTypeName)
+          ? this.buildModel(t, graphQLTypeName)
+          : (modelName: string) => this.buildModel(t, modelName);
+
+        // if (this.params.methodName) {
+        //   return {
+        //     [this.params.methodName]: modelDefinition
+        //   };
+        // }
+
+        return modelDefinition;
+      }
+    });
+  }
+
+  protected getModelsDynamicOutputMethod() {
+    // const methodName = this.params.methodName
+    //   ? this.params.methodName
+    //   : 'models';
+    return dynamicOutputMethod({
+      name: 'models',
+      typeDefinition: `: NexusPrisma<TypeName, 'models', 'models'>`,
+      factory: ({ typeDef: t }) => {
+        const allModels = this.dmmf.datamodel.models.reduce<
+          Record<string, any>
+        >((acc, model) => {
+          acc[model.name] = this.buildModel(t, model.name);
+          return acc;
+        }, {});
+
+        // if (this.params.methodName) {
+        //   return {
+        //     [this.params.methodName]: allModels
+        //   };
+        // }
+
+        return allModels;
+      }
+    });
+  }
+
+  protected buildModel(
+    t: core.OutputDefinitionBlock<any>,
+    graphQLTypeName: string
+  ) {
+    const model = this.dmmf.hasModel(graphQLTypeName);
+
+    if (!model) {
+      throw new Error(
+        `No model find with name ${graphQLTypeName}. Please use 't.models. instead.'`
+      );
+    }
+
+    return this.buildSchemaForPrismaModel(graphQLTypeName, graphQLTypeName, t);
   }
 
   protected computeArgsFromField(
     prismaModelName: string,
     graphQLTypeName: string,
+    operationName: keyof DMMF.Mapping | null,
     field: DMMF.SchemaField,
     opts: PhotogenMethodParams
   ) {
     let args: DMMF.SchemaArg[] = [];
 
     if (graphQLTypeName === 'Mutation') {
+      args = field.args;
+    } else if (operationName === 'findOne') {
       args = field.args;
     } else {
       args = this.argsForQueryOrModelField(
@@ -202,18 +291,19 @@ export class PhotogenBuilder {
       if (arg.inputType.kind === 'scalar') {
         acc[arg.name] = core.arg(nexusOpts(arg.inputType));
       } else {
-        if (!this.builtInputTypesMap[arg.inputType.type]) {
+        const typeName = this.argTypeName(
+          parentTypeName,
+          field.name,
+          arg.inputType.type,
+          arg.inputType.kind
+        );
+        if (!this.builtInputTypesMap[typeName]) {
           acc[arg.name] = this.createInputEnumType(parentTypeName, field, arg);
         } else {
           acc[arg.name] = core.arg(
             nexusOpts({
               ...arg.inputType,
-              type: this.argTypeName(
-                parentTypeName,
-                field.name,
-                arg.inputType.type,
-                arg.inputType.kind
-              )
+              type: typeName
             })
           );
         }
@@ -222,55 +312,58 @@ export class PhotogenBuilder {
     }, {});
   }
 
-  protected buildSchemaFor(
+  protected buildSchemaForCRUD(
     t: core.OutputDefinitionBlock<any>,
-    prismaModelName: string,
     parentTypeName: string,
-    fields: DMMF.SchemaField[],
-    mapping: DMMF.Mapping
+    mappedFields: FieldsWithModelName[]
   ) {
-    const result = fields.reduce<
+    const result = mappedFields.reduce<
       Record<string, (opts?: PhotogenMethodParams) => any>
-    >((acc, field) => {
-      acc[field.name] = opts => {
-        if (!opts) {
-          opts = {};
-        }
-        if (!opts.pagination) {
-          opts.pagination = true;
-        }
-        const fieldName = opts.alias ? opts.alias : field.name;
-        const type = opts.type ? opts.type : field.outputType.type;
+    >((acc, mappedField) => {
+      const prismaModelName = mappedField.mapping.model;
 
-        const operationName = Object.keys(mapping).find(
-          key => (mapping as any)[key] === field.name
-        );
-
-        if (!operationName) {
-          throw new Error(
-            'Could not find operation name for field ' + field.name
-          );
-        }
-
-        t.field(fieldName, {
-          ...nexusOpts({ ...field.outputType, type }),
-          args: this.computeArgsFromField(
-            prismaModelName,
-            parentTypeName,
-            field,
-            opts
-          ),
-          resolve: (_, args, ctx) => {
-            const photon = this.params.photon(ctx);
-
-            assertPhotonInContext(photon);
-
-            return photon[mapping.findMany!][operationName](args);
+      mappedField.fields.forEach(field => {
+        acc[field.name] = opts => {
+          if (!opts) {
+            opts = {};
           }
-        });
+          if (!opts.pagination) {
+            opts.pagination = true;
+          }
+          const fieldName = opts.alias ? opts.alias : field.name;
+          const type = opts.type ? opts.type : field.outputType.type;
+          const operationName = Object.keys(mappedField.mapping).find(
+            key => (mappedField.mapping as any)[key] === field.name
+          ) as keyof DMMF.Mapping | undefined;
 
-        return result;
-      };
+          if (!operationName) {
+            throw new Error(
+              'Could not find operation name for field ' + field.name
+            );
+          }
+
+          t.field(fieldName, {
+            ...nexusOpts({ ...field.outputType, type }),
+            args: this.computeArgsFromField(
+              prismaModelName,
+              parentTypeName,
+              operationName,
+              field,
+              opts
+            ),
+            resolve: (_, args, ctx) => {
+              const photon = this.params.photon(ctx);
+
+              assertPhotonInContext(photon);
+
+              return photon[mappedField.mapping.plural!][operationName](args);
+            }
+          });
+
+          return result;
+        };
+      });
+
       return acc;
     }, {});
 
@@ -352,7 +445,7 @@ export class PhotogenBuilder {
     graphQLTypeName: string,
     t: core.OutputDefinitionBlock<any>
   ) {
-    const model = this.dmmf.getModel(prismaModelName);
+    const model = this.dmmf.getModelOrThrow(prismaModelName);
     const outputType = this.dmmf.getOutputType(model.name);
 
     const result = model.fields.reduce<
@@ -382,6 +475,7 @@ export class PhotogenBuilder {
           args: this.computeArgsFromField(
             prismaModelName,
             graphQLTypeName,
+            null,
             graphqlField,
             opts
           )
@@ -395,7 +489,7 @@ export class PhotogenBuilder {
 
             assertPhotonInContext(photon);
 
-            return photon[mapping.findMany!]
+            return photon[mapping.plural!]
               ['findOne']({ where: { id: root.id } })
               [graphqlField.name](args);
           };
@@ -446,7 +540,7 @@ export class PhotogenBuilder {
         return this.namingStrategy.orderByInput(graphQLTypeName, fieldName);
       }
 
-      if (this.isRelationFilterArg(graphQLTypeName)) {
+      if (this.isRelationFilterArg(inputTypeName)) {
         return this.namingStrategy.relationFilterInput(
           graphQLTypeName,
           fieldName

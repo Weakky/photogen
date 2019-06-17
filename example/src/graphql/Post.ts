@@ -1,13 +1,10 @@
-import { objectType } from "nexus-tmp-chainable-method";
+import { objectType } from 'nexus-tmp-chainable-method';
 
 export const Post = objectType({
-  name: 'Post',
+  name: 'CustomPost',
   definition(t) {
-    t.photogen('Post')
-      .id()
-      .title()
-      .tags()
-      .blog()
-      .author();
+    t.model('Post').id();
+    t.model('Post').title();
+    t.model('Post').tags();
   }
 });

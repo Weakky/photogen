@@ -3,11 +3,10 @@ import { objectType } from 'nexus-tmp-chainable-method';
 export const Blog = objectType({
   name: 'Blog',
   definition(t) {
-    t.photogen('Blog')
-      .id()
-      .name()
-      .posts()
-      .viewCount()
-      .authors();
+    t.model.id();
+    t.model.name();
+    t.model.posts({ type: 'CustomPost' });
+    t.model.viewCount();
+    t.model.authors();
   }
 });

@@ -67,7 +67,7 @@ export class DMMFClass implements DMMF.Document {
     return enumType;
   }
 
-  getModel(modelName: string) {
+  getModelOrThrow(modelName: string) {
     const model = this.modelMap[modelName];
 
     if (!model) {
@@ -76,6 +76,17 @@ export class DMMFClass implements DMMF.Document {
 
     return model;
   }
+
+  hasModel(modelName: string) {
+    const model = this.modelMap[modelName];
+
+    if (!model) {
+      return false
+    }
+
+    return true;
+  }
+
 
   getMapping(modelName: string) {
     const mapping = this.mappings.find(m => m.model === modelName);

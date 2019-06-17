@@ -670,7 +670,7 @@ graphql-yoga@^1.17.4:
     graphql-tools "^4.0.0"
     subscriptions-transport-ws "^0.9.8"
 
-"graphql@^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0", "graphql@^0.12.0 || ^0.13.0 || ^14.0.0", graphql@^14.3.1:
+"graphql@^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0", graphql@^14.3.1:
   version "14.3.1"
   resolved "https://registry.yarnpkg.com/graphql/-/graphql-14.3.1.tgz#b3aa50e61a841ada3c1f9ccda101c483f8e8c807"
   integrity sha512-FZm7kAa3FqKdXy8YSSpAoTtyDFMIYSpCDOr+3EqlI1bxmtHu+Vv/I2vrSeT1sBOEnEniX3uo4wFhFdS/8XN6gA==
@@ -908,6 +908,13 @@ negotiator@0.6.2:
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.2.tgz#feacf7ccf525a77ae9634436a64883ffeca346fb"
   integrity sha512-hZXc7K2e+PgeI1eDBe/10Ard4ekbfrrqG8Ep+8Jmf4JID2bNg7NvCPOZN+kfF574pFQI7mum2AUqDidoKqcTOw==
 
+nexus-tmp-chainable-method@0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/nexus-tmp-chainable-method/-/nexus-tmp-chainable-method-0.0.4.tgz#7029d67a4dd49d522c832ec8ad9fb1c5b7d0eb91"
+  integrity sha512-oZt25f8nhtKlav0i3o+Cyev9XqY3ILB1Fs88hyUQAuLtS1QxEhmS101P/jZMQGpM1bRHpU3Eg+n5x0OJP8oILQ==
+  dependencies:
+    tslib "^1.9.3"
+
 nexus-tmp-chainable-method@^0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/nexus-tmp-chainable-method/-/nexus-tmp-chainable-method-0.0.2.tgz#a05d80da590b16f03eeb49e16e0a8133a5251a68"
@@ -1015,12 +1022,11 @@ path-type@^1.0.0:
     pify "^2.0.0"
     pinkie-promise "^2.0.0"
 
-photogen@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/photogen/-/photogen-0.0.1.tgz#419ec0f0c92284aeaa02bd397578ce9b432aae5b"
-  integrity sha512-1nVO8O/UFCw0ilRmwTZQmvLqYXDpRlJ76GqLurv8OHo86LgJpaVwGlr09V9JyRvhKqM/Gm4eB6mwmWtRAsUa0w==
+photogen@^0.0.10:
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/photogen/-/photogen-0.0.10.tgz#4a3647c5d50630b84eaea90190b2a78d41db93ab"
+  integrity sha512-Vag7NbQk0qSaWPcQn2gwlBwDAh5e6onhJQUl6o5EQemQ6/UyvkRifEEbDWFzyZ4ddHgSzvbIWkYeIAj2jNmMNQ==
   dependencies:
-    graphql "^0.12.0 || ^0.13.0 || ^14.0.0"
     nexus-tmp-chainable-method "^0.0.2"
 
 pify@^2.0.0:
@@ -1040,10 +1046,10 @@ pinkie@^2.0.0:
   resolved "https://registry.yarnpkg.com/pinkie/-/pinkie-2.0.4.tgz#72556b80cfa0d48a974e80e77248e80ed4f7f870"
   integrity sha1-clVrgM+g1IqXToDnckjoDtT3+HA=
 
-prisma2@^0.0.9:
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/prisma2/-/prisma2-0.0.9.tgz#641e96f685f23283785247f7b0a59e43d8b94863"
-  integrity sha512-f+3LHIU363T7/ulXamcDZYrEi4+LCFgL8WwkJJhWCJZrBdjw+SJoqmK9us3y/QjhfVHFuWgasGdexu0nER4s3w==
+prisma2@^0.0.54:
+  version "0.0.54"
+  resolved "https://registry.yarnpkg.com/prisma2/-/prisma2-0.0.54.tgz#8592a1560cb54a76f529b199d22281e07ab855c9"
+  integrity sha512-S7/poo3/VrsH6lyiKhT0OuFD6qaux2UHL07Dpx+I/icMGO/2HzPhtfiBjSvGMkJCPhap9UwxqHzUIvSPpRGOzw==
 
 proxy-addr@~2.0.5:
   version "2.0.5"
@@ -1354,10 +1360,21 @@ ts-node-dev@^1.0.0-pre.40:
     ts-node "*"
     tsconfig "^7.0.0"
 
-ts-node@*, ts-node@^8.2.0:
+ts-node@*:
   version "8.2.0"
   resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-8.2.0.tgz#4a89754b00560bb24cd54526e1685fa38c45f240"
   integrity sha512-m8XQwUurkbYqXrKqr3WHCW310utRNvV5OnRVeISeea7LoCWVcdfeB/Ntl8JYWFh+WRoUAdBgESrzKochQt7sMw==
+  dependencies:
+    arg "^4.1.0"
+    diff "^4.0.1"
+    make-error "^1.1.1"
+    source-map-support "^0.5.6"
+    yn "^3.0.0"
+
+ts-node@^8.3.0:
+  version "8.3.0"
+  resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-8.3.0.tgz#e4059618411371924a1fb5f3b125915f324efb57"
+  integrity sha512-dyNS/RqyVTDcmNM4NIBAeDMpsAdaQ+ojdf0GOLqE6nwJOgzEkdRNzJywhDfwnuvB10oa6NLVG1rUJQCpRN7qoQ==
   dependencies:
     arg "^4.1.0"
     diff "^4.0.1"
